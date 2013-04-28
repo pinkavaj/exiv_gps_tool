@@ -44,6 +44,12 @@ class ExivGps:
                 gps_lon_ref = {'East': 'E', 'West': 'W', }[val]
             elif tag == "Exif.GPSInfo.GPSAltitude":
                 gps_alt = val
+            elif tag == "Exif.GPSInfo.GPSVersionID":
+                if val < "2.0.0.0":
+                    raise ValueError("Unsupported GPSInfo version '%s'" % val)
+            elif tag == "Exif.GPSInfo.GPSMapDatum":
+                if val != "WGS-84":
+                    raise ValueError("Unsupported GPSInfo Datum '%s'" % val)
             else:
                 raise ValueError("Invalid exiv2 resutl: %s" % repr(res))
 

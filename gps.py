@@ -12,15 +12,15 @@ class Gps:
                 self.altitude is None:
             return "N/A"
         s = ""
-        if self.longtitude is None and self.longtitude_ref is None:
-            s += "N/A, "
-        else:
-            s += Gps._degreesToString(self.longtitude) + self.longtitude_ref + ", "
-
         if self.latitude is None and self.latitude_ref is None:
             s += "N/A, "
         else:
             s += Gps._degreesToString(self.latitude) + self.latitude_ref + ", "
+
+        if self.longtitude is None and self.longtitude_ref is None:
+            s += "N/A, "
+        else:
+            s += Gps._degreesToString(self.longtitude) + self.longtitude_ref + ", "
 
         if self.altitude is None:
             s += "N/A"
@@ -44,7 +44,7 @@ class Gps:
             self.longtitude = self.longtitude_ref = None
             return
         if ref not in ("E", "W", ):
-            raise ValueError("Invalid reference value.")
+            raise ValueError("Invalid reference value '%s'." % repr(ref))
         if not (degrees >= 0. and degrees <= 180.):
             raise ValueError("Invalid longtitude degree value.")
         self.longtitude = degrees
@@ -67,16 +67,16 @@ class Gps:
         gps = gps_defaults if gps_defaults is not None else Gps()
 
         if position[0] == "N/A":
-            gps.setLongtitude(None, None)
-        else:
-            lon, lon_ref = Gps._posAndRefFromString(position[0])
-            gps.setLongtitude(lon, lon_ref)
-
-        if position[1] == "N/A":
             gps.setLatitude(None, None)
         else:
-            lat, lat_ref = Gps._posAndRefFromString(position[1])
+            lat, lat_ref = Gps._posAndRefFromString(position[0])
             gps.setLatitude(lat, lat_ref)
+
+        if position[1] == "N/A":
+            gps.setLongtitude(None, None)
+        else:
+            lon, lon_ref = Gps._posAndRefFromString(position[1])
+            gps.setLongtitude(lon, lon_ref)
 
         if len(position) == 3:
             if position[2] == "N/A":
