@@ -13,10 +13,7 @@ class ExivGpsTool:
         exivGps = ExivGps(file_name)
         try:
             gps = exivGps.get()
-            if gps:
-                gps = gps.toString()
-            else:
-                gps = "N/A"
+            gps = gps or "N/A"
         except ExivGps.ExivError:
             print("Failed to get exif information, skipping: '%s'" % file_name)
             return
@@ -25,7 +22,7 @@ class ExivGpsTool:
         if tabs < 0:
             tabs = 0
         tabs = "\t" * tabs
-        print("'%s'%s - [%s] : " % (file_name, tabs, gps), end="", flush=True)
+        print("'%s'%s - [%s] : " % (file_name, tabs, str(gps)), end="", flush=True)
         newGps = stdin.readline().strip()
         if newGps:
             newGps = Gps.fromString(newGps, gps)
