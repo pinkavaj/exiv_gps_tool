@@ -11,7 +11,7 @@ class Gps:
             self.latitude = self.latitude_ref = None
             return
         if ref not in ("N", "S", ):
-            raise ValueError("Invalid reference value.")
+            raise ValueError("Invalid reference value '%s'." % repr(ref))
         if not (degrees >= 0. and degrees <= 180.):
             raise ValueError("Invalid latitude degree value.")
         self.latitude = degrees
@@ -28,7 +28,7 @@ class Gps:
         self.longtitude = degrees
         self.longtitude_ref = ref
 
-    def setAltitude(altitude):
+    def setAltitude(self, altitude):
         self.altitude = altitude
 
     @classmethod
@@ -37,8 +37,8 @@ class Gps:
         position = position.split(",")
         if len(position) > 3:
             raise ValueError("Invalid position format. too much ','.")
-        lat, lat_ref = Gps._degreesFromString(position[0])
-        lon, lon_ref = Gps._degreesFromString(position[1])
+        lat, lat_ref = Gps._posAndRefFromString(position[0])
+        lon, lon_ref = Gps._posAndRefFromString(position[1])
 
         gps = Gps()
         gps.setLatitude(lat, lat_ref)
@@ -49,11 +49,15 @@ class Gps:
         return gps
 
     @staticmethod
+    def _posAndRefFromString(position):
+        position = position.strip()
+        ref = position[-1]
+        return (Gps._degreesFromString(position[:-1].strip()), ref, )
+
+    @staticmethod
     def _degreesFromString(degrees):
-        """Converts degrees into (float, ref, ), eg 38°59'26.348"N -> (38.99, 'N', )"""
-        degrees = degrees.strip()
-        ref = degrees[-1]
-        deg, deg_min = degrees[:-1].split('°')
+        """Converts degrees from string into float, eg 38°59'26.348" -> 38.99"""
+        deg, deg_min = degrees.split('°')
         deg = float(deg)
         if deg_min:
             deg_min, deg_sec = deg_min.split("'")
@@ -63,4 +67,5 @@ class Gps:
                 if garabage.strip():
                     raise ValueError("Invalid degree format")
                 deg += float(deg_sec) / 3600.
-        return (deg, ref, )
+        return deg
+
