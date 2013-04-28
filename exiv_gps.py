@@ -55,16 +55,50 @@ class ExivGps:
 
         return gps
 
-    def set(self, position):
+    def set(self, gps):
         """Set GPS position information."""
-        # todo: check and parse
-#49°48'27.876"N, 14°43'4.304"E
-        self.lat = lat
-        self.long = long
-        return call("exiv2",
-                "-M set Exif.GPSInfo.GPSLatitude %d/1 %d/1 %d/1" % self.lat[0:3],
-                "-M set Exif.GPSInfo.GPSLatitudeRef %s" % self.lat[3:4],
-                "-M set Exif.GPSInfo.GPSLongitude %d/1 %d/1 %d/1" % self.long[0:3],
-                "-M set Exif.GPSInfo.GPSLongitudeRef %s" % self.long[3:4],
-                self._file_name)
+        args = ["exiv2", ]
+        hasGps = False
+        if gps.latitude:
+            hasGps = True
+            lat = ExivGps._splitDegree(gps.latitude)
+            args.append("-M set Exif.GPSInfo.GPSLatitude %d/1 %d/1 %d/100" % lat)
+            args.append("-M set Exif.GPSInfo.GPSLatitudeRef %s" % gps.latitude_ref)
+        else:
+            pass
 
+        if gps.longtitude:
+            hasGps = True
+            lon = ExivGps._splitDegree(gps.longtitude)
+            args.append("-M set Exif.GPSInfo.GPSLongitude %d/1 %d/1 %d/100" % lon)
+            args.append("-M set Exif.GPSInfo.GPSLongitudeRef %s" % gps.longtitude_ref)
+        else:
+            pass
+
+        if gps.altitude:
+            hasGps = True
+            ref = 0 if gps.altitude >= 0. else 1
+            args.append("-M set Exif.GPSInfo.GPSAltitude %d" % abs(round(gps.altitude)))
+            args.append("-M set Exif.GPSInfo.GPSAltitudeRef %d" % ref)
+        else:
+            pass
+
+        if hasGps:
+            args.append("-M set Exif.GPSInfo.GPSMapDatum WGS-84")
+            args.append("-M set Exif.GPSInfo.GPSVersionID 2 2 0 0")
+        else:
+            pass
+
+        args.append(self._file_name)
+        proc = Popen(args)
+        proc.wait()
+        if proc.returncode is not 0:
+            raise ExivGps.ExivError("Nonzero stare returnet from cmd: %s" % repr(proc.returincode))
+
+    @staticmethod
+    def _splitDegree(degrees):
+        """Split degrees into tuple, beware, hacked version, see code for details."""
+        deg, deg_min = divmod(degrees, 1)
+        deg_min, deg_sec = divmod(deg_min*60, 1)
+        deg_sec = round(deg_sec*60*100)
+        return (deg, deg_min, deg_sec, )
